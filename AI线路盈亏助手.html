@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI线路盈亏助手</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0c2461, #1e3799, #4a69bd);
+            color: #fff;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #0a3d62, #1e5799);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.07)"/></svg>');
+            background-size: 100% 100%;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 18px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        .input-section {
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            background: #f9f9f9;
+        }
+        .section-title {
+            color: #0c2461;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a69bd;
+            font-size: 22px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0c2461;
+        }
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a69bd;
+            box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.2);
+        }
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        .calculate-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1e5799, #4a69bd);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #4a69bd, #1e5799);
+        }
+        .calculate-btn:active {
+            transform: translateY(-1px);
+        }
+        .results-section {
+            padding: 25px;
+            background: #fff;
+        }
+        .results-title {
+            color: #0c2461;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 26px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        .result-title {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        .result-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0c2461;
+        }
+        .profit-positive {
+            color: #27ae60;
+        }
+        .profit-negative {
+            color: #e74c3c;
+        }
+        .notes {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #4a69bd;
+        }
+        .notes h3 {
+            margin-bottom: 15px;
+            color: #0c2461;
+            font-size: 20px;
+        }
+        .notes p {
+            margin-bottom: 10px;
+            color: #6c757d;
+            line-height: 1.8;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            background: #f8f9fa;
+        }
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI线路盈亏助手 <span class="ai-badge">AI</span></h1>
+        </header>
+
+        <div class="input-section">
+            <div>
+                <h2 class="section-title">业务基本信息</h2>
+                <div class="input-group">
+                    <label for="customer" class="required">客户名称</label>
+                    <input type="text" id="customer" value="陕西****公司">
+                </div>
+                <div class="input-group">
+                    <label for="shippingFrom" class="required">发货地</label>
+                    <input type="text" id="shippingFrom" value="郭家河">
+                </div>
+                <div class="input-group">
+                    <label for="shippingTo" class="required">收货地</label>
+                    <input type="text" id="shippingTo" value="凤翔">
+                </div>
+                <div class="input-group">
+                    <label for="monthlyVolume" class="required">月运量（吨）</label>
+                    <input type="number" id="monthlyVolume" value="33">
+                </div>
+            </div>
+
+            <div>
+                <h2 class="section-title">费用参数</h2>
+                <div class="input-group">
+                    <label for="driverPrice" class="required">司机运价（元/吨）</label>
+                    <input type="number" id="driverPrice" value="86.88">
+                </div>
+                <div class="input-group">
+                    <label for="handlingPrice" class="required">装卸单价（元/吨）</label>
+                    <input type="number" id="handlingPrice" value="100">
+                </div>
+                <div class="input-group">
+                    <label for="brokeragePrice">居间单价（元/吨）</label>
+                    <input type="number" id="brokeragePrice" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="infoFeePerTruck">信息费（元/车）</label>
+                    <input type="number" id="infoFeePerTruck" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="tonPerTruck" class="required">单车吨位（吨/车）</label>
+                    <input type="number" id="tonPerTruck" value="33">
+                </div>
+            </div>
+
+            <div>
+                <h2 class="section-title">其他参数</h2>
+                <div class="input-group">
+                    <label for="cardType" class="required">发卡类型</label>
+                    <select id="cardType">
+                        <option value="气卡" selected>气卡</option>
+                        <option value="油卡">油卡</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="cardRatio" class="required">发卡比例（0-30%）</label>
+                    <input type="number" id="cardRatio" value="0" min="0" max="30">
+                </div>
+                <div class="input-group">
+                    <label for="invoiceType" class="required">发票类型</label>
+                    <select id="invoiceType">
+                        <option value="3%的专票" selected>税率3%的专票</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="quotePrice" class="required">报价（元/吨）</label>
+                    <input type="number" id="quotePrice" value="200">
+                </div>
+                <button class="calculate-btn" onclick="calculate()">计算利润</button>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <h2 class="results-title">计算结果</h2>
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-title">成本价（元/吨）</div>
+                    <div class="result-value" id="costPrice">0.00</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-title">报价（元/吨）</div>
+                    <div class="result-value" id="displayQuotePrice">200.00</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-title">毛利（元）</div>
+                    <div class="result-value" id="grossProfit">0.00</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-title">利润率</div>
+                    <div class="result-value" id="profitMargin">0.00%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <h3>备注说明</h3>
+            <p>1、毛利≧0的报价方可签订合同。</p>
+            <p>2、毛利等于0时报价=成本价，即为保本价。</p>
+            <p>3、标有 * 的字段为必填项。</p>
+            <p>4、本工具适用于大宗自运业务。</p>
+        </div>
+
+        <footer>
+            <p>© 2023 AI线路盈亏助手 | 智能运输业务分析工具</p>
+        </footer>
+    </div>
+
+    <script>
+        function calculate() {
+            // 获取输入值
+            const cardType = document.getElementById('cardType').value;
+            const cardRatio = parseFloat(document.getElementById('cardRatio').value) / 100;
+            const monthlyVolume = parseFloat(document.getElementById('monthlyVolume').value);
+            const driverPrice = parseFloat(document.getElementById('driverPrice').value);
+            const handlingPrice = parseFloat(document.getElementById('handlingPrice').value);
+            const brokeragePrice = parseFloat(document.getElementById('brokeragePrice').value);
+            const infoFeePerTruck = parseFloat(document.getElementById('infoFeePerTruck').value);
+            const tonPerTruck = parseFloat(document.getElementById('tonPerTruck').value);
+            const quotePrice = parseFloat(document.getElementById('quotePrice').value);
+            
+            // 计算税率（隐藏行）
+            const taxRate = cardType === "油卡" ? 0.13 : 0.09;
+            
+            // 计算发卡进项（隐藏行）
+            const cardInputTax = monthlyVolume * driverPrice * cardRatio * taxRate / (1 + taxRate) / monthlyVolume;
+            
+            // 计算信息费（元/吨）（隐藏行）
+            const infoFeePerTon = infoFeePerTruck / tonPerTruck;
+            
+            // 计算人力投入（元/吨）（隐藏行）- 使用默认值
+            const laborCostPerTon = 0;
+            
+            // 计算房租费用（元/吨）（隐藏行）- 使用默认值
+            const rentPerTon = 0;
+            
+            // 计算装卸费进项税（隐藏行）
+            const handlingInputTax = handlingPrice * 0.03 / (1 + 0.03);
+            
+            // 计算其他投入合计（隐藏行）- 使用默认值
+            const otherCostTotal = 0;
+            
+            // 计算商务费用（元/吨）（隐藏行）- 使用默认值
+            const businessCostPerTon = 0;
+            
+            // 计算月运费垫资（隐藏行）
+            const monthlyFreightAdvance = driverPrice * monthlyVolume;
+            
+            // 计算其他垫资额（隐藏行）
+            const otherAdvance = (handlingPrice + brokeragePrice + infoFeePerTon + laborCostPerTon + rentPerTon + businessCostPerTon) * monthlyVolume;
+            
+            // 计算垫资利息（元/吨）（隐藏行）- 使用默认值
+            const advanceInterestPerTon = 0;
+            
+            // 计算销项税（隐藏行）
+            const outputTax = (quotePrice * monthlyVolume) / 1.09 * 0.09;
+            
+            // 计算进项税（隐藏行）
+            const totalInputTax = cardInputTax * monthlyVolume + handlingInputTax * monthlyVolume;
+            
+            // 计算增值税（隐藏行）
+            const vat = outputTax - totalInputTax;
+            
+            // 计算附加税（隐藏行）
+            const additionalTax = vat * 0.12 + (quotePrice * monthlyVolume) / 1.09 * 0.0009;
+            
+            // 计算贴现率（隐藏行）- 使用默认值
+            const discountRate = 0.0121;
+            
+            // 计算承兑利息（隐藏行）- 使用默认值
+            const acceptanceInterest = 0;
+            
+            // 计算增值税返还（隐藏行）- 使用默认值
+            const vatRebate = 0;
+            
+            // 计算城建税返还（隐藏行）- 使用默认值
+            const urbanTaxRebate = 0;
+            
+            // 计算教育附加返还（隐藏行）- 使用默认值
+            const educationTaxRebate = 0;
+            
+            // 计算印花水利返还（隐藏行）- 使用默认值
+            const stampTaxRebate = 0;
+            
+            // 计算园区服务费（元/吨）（隐藏行）
+            const parkServiceFee = quotePrice * 0.003;
+            
+            // 计算成本价
+            const costPrice = driverPrice + 
+                             handlingPrice + 
+                             brokeragePrice + 
+                             infoFeePerTon + 
+                             laborCostPerTon + 
+                             rentPerTon + 
+                             otherCostTotal + 
+                             businessCostPerTon + 
+                             advanceInterestPerTon + 
+                             vat / monthlyVolume + 
+                             additionalTax / monthlyVolume + 
+                             acceptanceInterest / monthlyVolume -
+                             (vatRebate + urbanTaxRebate + educationTaxRebate + stampTaxRebate) / monthlyVolume +
+                             parkServiceFee;
+            
+            // 计算毛利和利润率
+            const grossProfit = quotePrice - costPrice;
+            const profitMargin = (grossProfit / quotePrice) * 100;
+            
+            // 显示结果
+            document.getElementById('costPrice').textContent = costPrice.toFixed(2);
+            document.getElementById('displayQuotePrice').textContent = quotePrice.toFixed(2);
+            document.getElementById('grossProfit').textContent = grossProfit.toFixed(2);
+            document.getElementById('profitMargin').textContent = profitMargin.toFixed(2) + '%';
+            
+            // 根据利润正负设置颜色
+            document.getElementById('grossProfit').className = grossProfit >= 0 ? 
+                'result-value profit-positive' : 'result-value profit-negative';
+        }
+        
+        // 页面加载时自动计算一次
+        window.onload = calculate;
+    </script>
+</body>
+</html>
